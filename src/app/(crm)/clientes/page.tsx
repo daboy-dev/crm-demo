@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/button";
 import { Loading, PageHeader } from "@/components/page-header";
@@ -27,6 +28,8 @@ export default function ClientsPage() {
 }
 
 async function ClientsTable() {
+  // Read the database at request time, never at build time.
+  await connection();
   const clients = await listClients();
   return (
     <Table data-testid="clients-table">
