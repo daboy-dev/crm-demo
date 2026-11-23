@@ -10,7 +10,7 @@ import {
   safeEqual,
 } from "@/lib/auth";
 
-export type LoginState = { error: string | null };
+export type LoginState = { error: string | null; user: string };
 
 export async function login(
   _prev: LoginState,
@@ -28,7 +28,7 @@ export async function login(
     safeEqual(password, expectedPassword, secret),
   ]);
   if (!expectedUser || !expectedPassword || !userOk || !passwordOk) {
-    return { error: "Usuario o contraseña incorrectos." };
+    return { error: "Usuario o contraseña incorrectos.", user };
   }
 
   (await cookies()).set(
