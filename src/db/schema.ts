@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   date,
   integer,
@@ -87,6 +88,37 @@ export const invoiceItems = pgTable("invoice_items", {
   /** Whole percentage, e.g. 21 for 21 % IVA. */
   taxRate: integer("tax_rate").notNull(),
 });
+
+export const clientsRelations = relations(clients, ({ many }) => ({
+  quotes: many(quotes),
+  invoices: many(invoices),
+}));
+
+export const quotesRelations = relations(quotes, ({ one, many }) => ({
+  client: one(clients, { fields: [quotes.clientId], references: [clients.id] }),
+  items: many(quoteItems),
+  invoice: one(invoices),
+}));
+
+export const quoteItemsRelations = relations(quoteItems, ({ one }) => ({
+  quote: one(quotes, { fields: [quoteItems.quoteId], references: [quotes.id] }),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [invoices.clientId],
+    references: [clients.id],
+  }),
+  quote: one(quotes, { fields: [invoices.quoteId], references: [quotes.id] }),
+  items: many(invoiceItems),
+}));
+
+export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [invoiceItems.invoiceId],
+    references: [invoices.id],
+  }),
+}));
 
 export type Client = typeof clients.$inferSelect;
 export type Quote = typeof quotes.$inferSelect;
