@@ -400,14 +400,12 @@ async function main() {
       .where(eq(invoiceItems.invoiceId, invoice.id))
       .limit(1);
     if (hasInvoiceItems.length === 0) {
-      await db
-        .insert(invoiceItems)
-        .values(
-          toItems(seed.items).map((item) => ({
-            ...item,
-            invoiceId: invoice.id,
-          })),
-        );
+      await db.insert(invoiceItems).values(
+        toItems(seed.items).map((item) => ({
+          ...item,
+          invoiceId: invoice.id,
+        })),
+      );
     }
   }
 
