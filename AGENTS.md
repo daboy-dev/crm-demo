@@ -64,6 +64,11 @@ Los usan los tests E2E: **no cambies ni borres los existentes**.
   `generate-invoice-button`, `mark-paid-button`.
 - Título de página `page-title`; badge `status-badge` con `data-status`.
 
+Next.js mantiene en el DOM, ocultas, las páginas ya visitadas (`<Activity>`), así que un mismo
+`data-testid` puede aparecer dos veces. En Playwright selecciona siempre con `byTestId(page, id)` de
+`e2e/helpers.ts`, que filtra los visibles. Por lo mismo, los formularios de alta y edición van
+envueltos en `<ResetOnHide>` para empezar vacíos al volver.
+
 ## Convenciones
 
 - Textos de UI en **español**; código, nombres, comentarios y commits en inglés.

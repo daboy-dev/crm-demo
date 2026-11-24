@@ -1,27 +1,28 @@
 import { expect, test, type Page } from "@playwright/test";
+import { byTestId } from "./helpers";
 
 async function login(page: Page) {
   await page.goto("/login");
-  await page.getByTestId("field-user").fill(process.env.DEMO_USER ?? "");
+  await byTestId(page, "field-user").fill(process.env.DEMO_USER ?? "");
   await page
     .getByTestId("field-password")
     .fill(process.env.DEMO_PASSWORD ?? "");
-  await page.getByTestId("login-submit").click();
+  await byTestId(page, "login-submit").click();
   await expect(page).toHaveURL(/\/clientes$/);
 }
 
 test("redirects to login without a session", async ({ page }) => {
   await page.goto("/facturas");
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByTestId("login-form")).toBeVisible();
+  await expect(byTestId(page, "login-form")).toBeVisible();
 });
 
 test("rejects wrong credentials", async ({ page }) => {
   await page.goto("/login");
-  await page.getByTestId("field-user").fill("nadie");
-  await page.getByTestId("field-password").fill("incorrecta");
-  await page.getByTestId("login-submit").click();
-  await expect(page.getByTestId("login-error")).toBeVisible();
+  await byTestId(page, "field-user").fill("nadie");
+  await byTestId(page, "field-password").fill("incorrecta");
+  await byTestId(page, "login-submit").click();
+  await expect(byTestId(page, "login-error")).toBeVisible();
 });
 
 test("health endpoint is public", async ({ request }) => {
@@ -32,31 +33,31 @@ test("health endpoint is public", async ({ request }) => {
 
 test("lists clients, quotes and invoices with data", async ({ page }) => {
   await login(page);
-  await expect(page.getByTestId("client-row").first()).toBeVisible();
+  await expect(byTestId(page, "client-row").first()).toBeVisible();
 
-  await page.getByTestId("nav-presupuestos").click();
-  await expect(page.getByTestId("quotes-table")).toBeVisible();
-  await expect(page.getByTestId("quote-row").first()).toBeVisible();
+  await byTestId(page, "nav-presupuestos").click();
+  await expect(byTestId(page, "quotes-table")).toBeVisible();
+  await expect(byTestId(page, "quote-row").first()).toBeVisible();
 
-  await page.getByTestId("nav-facturas").click();
-  await expect(page.getByTestId("invoices-table")).toBeVisible();
-  await expect(page.getByTestId("invoice-row").first()).toBeVisible();
+  await byTestId(page, "nav-facturas").click();
+  await expect(byTestId(page, "invoices-table")).toBeVisible();
+  await expect(byTestId(page, "invoice-row").first()).toBeVisible();
 });
 
 test("shows a quote with its lines and totals", async ({ page }) => {
   await login(page);
   await page.goto("/presupuestos");
-  await page.getByTestId("quote-row").first().getByRole("link").click();
-  await expect(page.getByTestId("quote-detail")).toBeVisible();
-  await expect(page.getByTestId("item-row").first()).toBeVisible();
-  await expect(page.getByTestId("total-total")).toContainText("€");
+  await byTestId(page, "quote-row").first().getByRole("link").click();
+  await expect(byTestId(page, "quote-detail")).toBeVisible();
+  await expect(byTestId(page, "item-row").first()).toBeVisible();
+  await expect(byTestId(page, "total-total")).toContainText("€");
 });
 
 test("has no horizontal page scroll", async ({ page }) => {
   await login(page);
   for (const path of ["/clientes", "/presupuestos", "/facturas"]) {
     await page.goto(path);
-    await expect(page.getByTestId("page-title")).toBeVisible();
+    await expect(byTestId(page, "page-title")).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
     );
