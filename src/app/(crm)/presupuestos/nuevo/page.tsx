@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ResetOnHide } from "@/components/reset-on-hide";
 import { Loading, PageHeader } from "@/components/page-header";
 import { todayIso } from "@/lib/dates";
 import { listClientOptions } from "../../clientes/queries";
@@ -29,11 +30,13 @@ async function NewQuote({
   const { cliente } = await searchParams;
   const clients = await listClientOptions();
   return (
-    <QuoteForm
-      action={createQuote}
-      clients={clients}
-      defaultClientId={typeof cliente === "string" ? cliente : undefined}
-      defaultIssuedAt={todayIso()}
-    />
+    <ResetOnHide>
+      <QuoteForm
+        action={createQuote}
+        clients={clients}
+        defaultClientId={typeof cliente === "string" ? cliente : undefined}
+        defaultIssuedAt={todayIso()}
+      />
+    </ResetOnHide>
   );
 }

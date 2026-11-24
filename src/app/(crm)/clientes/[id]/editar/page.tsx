@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ResetOnHide } from "@/components/reset-on-hide";
 import { Loading, PageHeader } from "@/components/page-header";
 import { parseId } from "@/lib/ids";
 import { updateClient } from "../../actions";
@@ -28,16 +29,18 @@ async function EditClient({
   return (
     <>
       <PageHeader title={`Editar ${client.name}`} />
-      <ClientForm
-        action={updateClient.bind(null, client.id)}
-        cancelHref={`/clientes/${client.id}`}
-        initial={{
-          name: client.name,
-          email: client.email,
-          phone: client.phone ?? "",
-          company: client.company ?? "",
-        }}
-      />
+      <ResetOnHide>
+        <ClientForm
+          action={updateClient.bind(null, client.id)}
+          cancelHref={`/clientes/${client.id}`}
+          initial={{
+            name: client.name,
+            email: client.email,
+            phone: client.phone ?? "",
+            company: client.company ?? "",
+          }}
+        />
+      </ResetOnHide>
     </>
   );
 }

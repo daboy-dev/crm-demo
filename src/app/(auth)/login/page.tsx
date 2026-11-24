@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ResetOnHide } from "@/components/reset-on-hide";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Iniciar sesión · crm-demo" };
@@ -11,7 +12,9 @@ export default function LoginPage() {
         <p className="mb-6 text-sm text-slate-600">
           Inicia sesión con el usuario de demo.
         </p>
-        <LoginForm />
+        <ResetOnHide>
+          <LoginForm />
+        </ResetOnHide>
       </div>
     </main>
   );
