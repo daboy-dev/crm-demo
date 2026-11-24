@@ -69,6 +69,18 @@ Next.js mantiene en el DOM, ocultas, las páginas ya visitadas (`<Activity>`), a
 `e2e/helpers.ts`, que filtra los visibles. Por lo mismo, los formularios de alta y edición van
 envueltos en `<ResetOnHide>` para empezar vacíos al volver.
 
+## E2E contra las vistas previas
+
+- Cada vista previa de Vercel lanza `.github/workflows/preview-e2e.yml` (evento
+  `deployment_status`). Ejecuta Playwright contra la URL de la vista previa en escritorio (1280 px) y
+  a 390 px, y sube el artifact `e2e-results` (`results.json`, `meta.json` y capturas). El panel
+  `crm-agents` lo descarga y lo muestra.
+- **`e2e/pages.ts`** es la lista de páginas que se capturan (`<name>-<1280|390>.jpg`). Si añades una
+  página que debe verse en la revisión, añade una línea ahí; no hace falta tocar nada más.
+- `e2e/write-flow.spec.ts` crea datos, así que solo se ejecuta contra vistas previas (cada una tiene
+  su rama de Neon). En producción y en local se salta.
+- Puedes añadir tests nuevos en `e2e/*.spec.ts` usando `byTestId` y `login` de `e2e/helpers.ts`.
+
 ## Convenciones
 
 - Textos de UI en **español**; código, nombres, comentarios y commits en inglés.
@@ -82,7 +94,9 @@ envueltos en `<ResetOnHide>` para empezar vacíos al volver.
 
 - Auth: `src/lib/auth.ts`, `src/app/(auth)/`, y `src/proxy.ts` (en Next 16 el middleware se llama proxy).
 - Config de build y despliegue: `next.config.ts`, `package.json` (scripts), `drizzle.config.ts`,
-  `tsconfig.json`, `eslint.config.mjs`, `.github/workflows/`, `playwright.config.ts`.
+  `tsconfig.json`, `eslint.config.mjs`, `playwright.config.ts`.
+- **`.github/**`** (workflows incluidos) y los helpers de `e2e/` (`helpers.ts`,
+  `screenshots.spec.ts`). El panel rechaza cualquier cambio que los toque.
 - Migraciones ya subidas en `drizzle/`.
 - `/api/health`.
 - No añadas dependencias salvo que la petición lo exija.
