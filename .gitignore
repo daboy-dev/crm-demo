@@ -47,3 +47,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# Preview E2E output (uploaded as an artifact in CI)
+/e2e-results/
