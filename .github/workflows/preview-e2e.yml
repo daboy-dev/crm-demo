@@ -1,0 +1,83 @@
+name: Preview E2E
+
+# Runs Playwright against every Vercel preview once it is ready (D15) and
+# leaves the results in the `e2e-results` artifact. The crm-agents panel
+# downloads it when GitHub sends the workflow_run webhook (D16), so this repo
+# holds no secret of the panel.
+
+on: deployment_status
+
+permissions:
+  contents: read
+
+jobs:
+  # Vercel sets deployment.ref to the commit sha, not the branch, so look the
+  # branch up to cancel the run of an older commit on the same branch.
+  resolve:
+    # Vercel sometimes appends the project name ("Preview – crm-demo").
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment.environment, 'Preview')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      branch: ${{ steps.branch.outputs.branch }}
+    steps:
+      - id: branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          branch=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/branches-where-head" --jq '.[0].name // empty')
+          echo "branch=${branch:-$SHA}" >> "$GITHUB_OUTPUT"
+
+  e2e:
+    needs: resolve
+    concurrency:
+      group: preview-e2e-${{ needs.resolve.outputs.branch }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      E2E_BASE_URL: ${{ github.event.deployment_status.target_url }}
+      E2E_SCREENSHOTS_DIR: e2e-results/screenshots
+      PLAYWRIGHT_JSON_OUTPUT_FILE: e2e-results/results.json
+      DEMO_USER: ${{ secrets.DEMO_USER }}
+      DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Write meta.json
+        env:
+          SHA: ${{ github.event.deployment.sha }}
+          REF: ${{ needs.resolve.outputs.branch }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          mkdir -p e2e-results/screenshots
+          jq -n \
+            --arg sha "$SHA" --arg ref "$REF" --arg target_url "$E2E_BASE_URL" \
+            --argjson run_id "$RUN_ID" --argjson run_attempt "$RUN_ATTEMPT" \
+            '{sha: $sha, ref: $ref, target_url: $target_url, run_id: $run_id, run_attempt: $run_attempt}' \
+            > e2e-results/meta.json
+
+      - name: Run Playwright
+        run: pnpm exec playwright test --reporter=list,json --trace=off
+
+      - name: Upload e2e-results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results
+          path: e2e-results/
+          retention-days: 1
+          if-no-files-found: error
