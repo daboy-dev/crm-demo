@@ -43,6 +43,16 @@ test("shows a quote with its lines and totals", async ({ page }) => {
   await expect(byTestId(page, "total-total")).toContainText("€");
 });
 
+// H2 check: this test fails on purpose so the panel shows a failed run.
+test("shows a page that does not exist (broken on purpose)", async ({
+  page,
+}) => {
+  await login(page);
+  await expect(byTestId(page, "page-title")).toHaveText("Página inexistente", {
+    timeout: 3000,
+  });
+});
+
 test("has no horizontal page scroll", async ({ page }) => {
   await login(page);
   for (const path of ["/clientes", "/presupuestos", "/facturas"]) {
