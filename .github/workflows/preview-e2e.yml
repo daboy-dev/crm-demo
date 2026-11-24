@@ -10,16 +10,32 @@ on: deployment_status
 permissions:
   contents: read
 
-concurrency:
-  group: preview-e2e-${{ github.event.deployment.ref }}
-  cancel-in-progress: true
-
 jobs:
-  e2e:
+  # Vercel sets deployment.ref to the commit sha, not the branch, so look the
+  # branch up to cancel the run of an older commit on the same branch.
+  resolve:
     # Vercel sometimes appends the project name ("Preview – crm-demo").
     if: >-
       github.event.deployment_status.state == 'success' &&
       startsWith(github.event.deployment.environment, 'Preview')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      branch: ${{ steps.branch.outputs.branch }}
+    steps:
+      - id: branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          branch=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/branches-where-head" --jq '.[0].name // empty')
+          echo "branch=${branch:-$SHA}" >> "$GITHUB_OUTPUT"
+
+  e2e:
+    needs: resolve
+    concurrency:
+      group: preview-e2e-${{ needs.resolve.outputs.branch }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -43,7 +59,7 @@ jobs:
       - name: Write meta.json
         env:
           SHA: ${{ github.event.deployment.sha }}
-          REF: ${{ github.event.deployment.ref }}
+          REF: ${{ needs.resolve.outputs.branch }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
