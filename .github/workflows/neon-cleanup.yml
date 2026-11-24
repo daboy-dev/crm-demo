@@ -1,0 +1,39 @@
+name: Neon preview cleanup
+
+# The Neon-Managed Vercel integration only deletes obsolete preview branches
+# on the next preview deployment. Delete the PR's branch as soon as it closes
+# to stay under Neon's 10-branch limit (D11).
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  delete-preview-branch:
+    runs-on: ubuntu-latest
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+      NEON_BRANCH: preview/${{ github.head_ref }}
+    steps:
+      - name: Check whether the preview branch still exists
+        id: check
+        # Fails loudly on a bad API key or project id.
+        run: |
+          branches=$(npx -y neonctl@2 branches list --project-id "$NEON_PROJECT_ID" --output json)
+          if echo "$branches" | jq -e --arg name "$NEON_BRANCH" 'any(.[]; .name == $name)' > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Neon branch named $NEON_BRANCH; nothing to delete."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Delete the preview branch
+        if: steps.check.outputs.exists == 'true'
+        uses: neondatabase/delete-branch-action@v3.2.1
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          branch: ${{ env.NEON_BRANCH }}
+          api_key: ${{ secrets.NEON_API_KEY }}
