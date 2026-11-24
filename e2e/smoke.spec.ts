@@ -1,15 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { byTestId } from "./helpers";
-
-async function login(page: Page) {
-  await page.goto("/login");
-  await byTestId(page, "field-user").fill(process.env.DEMO_USER ?? "");
-  await page
-    .getByTestId("field-password")
-    .fill(process.env.DEMO_PASSWORD ?? "");
-  await byTestId(page, "login-submit").click();
-  await expect(page).toHaveURL(/\/clientes$/);
-}
+import { expect, test } from "@playwright/test";
+import { byTestId, login } from "./helpers";
 
 test("redirects to login without a session", async ({ page }) => {
   await page.goto("/facturas");
