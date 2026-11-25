@@ -1,6 +1,6 @@
 import { desc, eq, like } from "drizzle-orm";
-import { getDb } from "db/client";
-import { invoices, InvoiceStatus } from "db/schema";
+import { getDb } from "@/db/client";
+import { invoices, type InvoiceStatus } from "@/db/schema";
 
 /** All invoices, newest first, with client and lines (to compute totals). */
 export async function listInvoices(status?: InvoiceStatus) {
