@@ -82,6 +82,14 @@ const OUT_DIR = path.join(
   "criteria",
 );
 const MAX_SNAPSHOT = 4_000;
+/**
+ * A step fails well before the test does, so the page is still open to save
+ * its aria snapshot. Assertions keep Playwright's default of 5 s.
+ */
+const ACTION_TIMEOUT = 10_000;
+const TEST_TIMEOUT = 90_000;
+// eslint-disable-next-line no-control-regex
+const ANSI = /\u001b\[[0-9;]*m/g;
 
 function describe(step: Step): string {
   switch (step.action) {
@@ -105,21 +113,21 @@ async function goto(page: Page, step: Extract<Step, { action: "goto" }>) {
     throw new Error("goto lleva page o path, no los dos ni ninguno");
   }
   if (step.path) {
-    await page.goto(step.path);
+    await page.goto(step.path, { timeout: ACTION_TIMEOUT });
     return;
   }
   const entry = pages.find((p) => p.name === step.page);
   if (!entry) throw new Error(`La página ${step.page} no está en e2e/pages.ts`);
   if ("path" in entry) {
-    await page.goto(entry.path);
+    await page.goto(entry.path, { timeout: ACTION_TIMEOUT });
     return;
   }
-  await page.goto(entry.fromList);
+  await page.goto(entry.fromList, { timeout: ACTION_TIMEOUT });
   await byTestId(page, entry.rowTestId)
     .first()
     .getByRole("link")
     .first()
-    .click();
+    .click({ timeout: ACTION_TIMEOUT });
   await expect(page).not.toHaveURL(new RegExp(`${entry.fromList}$`));
 }
 
@@ -130,12 +138,12 @@ async function run(page: Page, step: Step, stamp: string) {
   const one = all.nth(("nth" in step ? step.nth : undefined) ?? 0);
   switch (step.action) {
     case "fill":
-      return one.fill(fill(step.value));
+      return one.fill(fill(step.value), { timeout: ACTION_TIMEOUT });
     case "select":
-      await one.selectOption(fill(step.value));
+      await one.selectOption(fill(step.value), { timeout: ACTION_TIMEOUT });
       return;
     case "click":
-      return one.click();
+      return one.click({ timeout: ACTION_TIMEOUT });
     case "expectVisible":
       return expect(one).toBeVisible();
     case "expectText": {
@@ -192,6 +200,7 @@ test.describe("criteria", () => {
     for (const criterion of file.criteria) {
       const title = `run-${file.run} r${criterion.revision} ${criterion.id}`;
       test(`${title} · ${criterion.text}`, async ({ page }, info) => {
+        test.setTimeout(TEST_TIMEOUT);
         const stamp = `${Date.now()}-${info.project.name}`;
         await login(page);
         for (const [i, step] of criterion.steps.entries()) {
@@ -199,8 +208,9 @@ test.describe("criteria", () => {
           try {
             await test.step(label, () => run(page, step, stamp));
           } catch (failure) {
-            const message =
-              failure instanceof Error ? failure.message : String(failure);
+            const message = (
+              failure instanceof Error ? failure.message : String(failure)
+            ).replace(ANSI, "");
             const snapshot = await page
               .locator("body")
               .ariaSnapshot({ timeout: 5_000 })
