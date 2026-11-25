@@ -48,15 +48,20 @@ jobs:
       - id: generate
         name: drizzle-kit generate
         # drizzle-kit asks on ambiguous changes (rename or drop and add). With
-        # no stdin and a timeout it fails instead of hanging.
+        # no TTY it prints an error instead of hanging, but still exits 0, so
+        # success also needs one of its success messages and no error line.
         run: |
           mkdir -p out
-          if timeout 120 pnpm exec drizzle-kit generate < /dev/null > out/generate.log 2>&1; then
+          code=0
+          timeout 120 pnpm exec drizzle-kit generate < /dev/null > out/generate.log 2>&1 || code=$?
+          cat out/generate.log
+          if [ "$code" = 0 ] &&
+            grep -Eq 'Your SQL migration file|No schema changes' out/generate.log &&
+            ! grep -Eq '^\s*Error' out/generate.log; then
             echo "status=ok" >> "$GITHUB_OUTPUT"
           else
             echo "status=failed" >> "$GITHUB_OUTPUT"
           fi
-          cat out/generate.log
 
       - id: diff
         name: Migration patch
