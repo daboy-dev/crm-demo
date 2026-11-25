@@ -173,7 +173,11 @@ jobs:
           mkdir -p pr-check
           clean() { sed 's/\x1b\[[0-9;]*m//g' "$1" | head -c 20000; }
           tsc=0
-          { pnpm exec next typegen && pnpm exec tsc --noEmit --pretty false; } > "$RUNNER_TEMP/typecheck.log" 2>&1 || tsc=$?
+          # typegen output only matters when it fails.
+          pnpm exec next typegen > "$RUNNER_TEMP/typecheck.log" 2>&1 || tsc=$?
+          if [ "$tsc" = 0 ]; then
+            pnpm exec tsc --noEmit --pretty false > "$RUNNER_TEMP/typecheck.log" 2>&1 || tsc=$?
+          fi
           lint=0
           pnpm exec eslint --quiet > "$RUNNER_TEMP/lint.log" 2>&1 || lint=$?
           clean "$GENERATE_LOG" > "$RUNNER_TEMP/generate.txt"
