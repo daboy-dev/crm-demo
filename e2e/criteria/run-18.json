@@ -1,0 +1,61 @@
+{
+  "run": 18,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 3,
+      "task": 1,
+      "text": "la página de facturas muestra el desplegable de filtro de estado y la tabla de facturas",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "nav-facturas"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "field-status"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoices-table"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 3,
+      "task": 1,
+      "text": "al seleccionar facturas pendientes en el filtro, la tabla muestra solo las facturas pendientes",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "field-status"
+        },
+        {
+          "action": "select",
+          "testId": "field-status",
+          "value": "pending"
+        },
+        {
+          "action": "expectCount",
+          "testId": "invoice-row",
+          "min": 1
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Pendiente",
+          "all": true
+        }
+      ]
+    }
+  ]
+}
