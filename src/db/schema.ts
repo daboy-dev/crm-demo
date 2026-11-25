@@ -24,6 +24,7 @@ export const clients = pgTable("clients", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: text().notNull(),
   email: text().notNull().unique(),
+  nif: text(),
   phone: text(),
   company: text(),
   createdAt: timestamp("created_at", { withTimezone: true })

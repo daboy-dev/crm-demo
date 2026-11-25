@@ -55,6 +55,7 @@ async function ClientDetail({
         <DetailList
           items={[
             { label: "Email", value: client.email, testId: "client-email" },
+            { label: "NIF", value: client.nif, testId: "client-nif" },
             { label: "Teléfono", value: client.phone, testId: "client-phone" },
             {
               label: "Empresa",

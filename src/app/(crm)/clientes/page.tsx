@@ -36,6 +36,7 @@ async function ClientsTable() {
       <thead>
         <tr>
           <Th>Nombre</Th>
+          <Th className="hidden sm:table-cell">NIF</Th>
           <Th className="hidden sm:table-cell">Empresa</Th>
           <Th className="hidden md:table-cell">Email</Th>
           <Th className="hidden md:table-cell">Teléfono</Th>
@@ -43,7 +44,7 @@ async function ClientsTable() {
       </thead>
       <tbody className="divide-y divide-slate-100">
         {clients.length === 0 && (
-          <EmptyRow colSpan={4}>Todavía no hay clientes.</EmptyRow>
+          <EmptyRow colSpan={5}>Todavía no hay clientes.</EmptyRow>
         )}
         {clients.map((client) => (
           <Tr key={client.id} data-testid="client-row" data-id={client.id}>
@@ -57,6 +58,9 @@ async function ClientsTable() {
               <div className="text-xs text-slate-500 sm:hidden">
                 {client.company ?? client.email}
               </div>
+            </Td>
+            <Td className="hidden whitespace-nowrap sm:table-cell">
+              {client.nif ?? "—"}
             </Td>
             <Td className="hidden sm:table-cell">{client.company ?? "—"}</Td>
             <Td className="hidden md:table-cell">{client.email}</Td>
