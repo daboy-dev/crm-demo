@@ -1,0 +1,216 @@
+name: PR check
+
+# Runs on every push to a PR (D31, D33 of crm-agents) in three jobs:
+# 1. generate (read-only, no secrets): `drizzle-kit generate` on the PR head,
+#    leaving any new migration as a patch. drizzle-kit executes
+#    src/db/schema.ts, which the Develop agent writes, so this job never holds
+#    a write token.
+# 2. commit (contents: write): runs no code from the branch. It applies the
+#    patch, limited to new migration files and the journal, and pushes it as a
+#    child commit of the PR head. Pushes made with GITHUB_TOKEN start no other
+#    workflow; Vercel still deploys the new commit.
+# 3. check (read-only, no secrets): typecheck and lint on the resulting head.
+#    Leaves check.json in the `pr-check` artifact, which the crm-agents panel
+#    downloads when GitHub sends the workflow_run webhook.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    # The commit job pushes to the head branch: only branches of this repo.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      status: ${{ steps.generate.outputs.status }}
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - id: generate
+        name: drizzle-kit generate
+        # drizzle-kit asks on ambiguous changes (rename or drop and add). With
+        # no stdin and a timeout it fails instead of hanging.
+        run: |
+          mkdir -p out
+          if timeout 120 pnpm exec drizzle-kit generate < /dev/null > out/generate.log 2>&1; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+          cat out/generate.log
+
+      - id: diff
+        name: Migration patch
+        env:
+          STATUS: ${{ steps.generate.outputs.status }}
+        run: |
+          touch out/migration.patch
+          if [ "$STATUS" = ok ]; then
+            git add -A drizzle
+            git diff --cached --binary --full-index -- drizzle > out/migration.patch
+          fi
+          if [ -s out/migration.patch ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pr-check-migration
+          path: out/
+          retention-days: 1
+          if-no-files-found: error
+
+  commit:
+    needs: generate
+    if: needs.generate.outputs.status == 'ok' && needs.generate.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.push.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v7
+        with:
+          name: pr-check-migration
+          path: ${{ runner.temp }}/migration
+
+      - name: Apply the migration
+        env:
+          PATCH: ${{ runner.temp }}/migration/migration.patch
+        # The patch comes from a job that ran branch code: accept only new
+        # migration files and the journal, never symlinks or other paths.
+        run: |
+          git apply --index --include='drizzle/*' "$PATCH"
+          if git diff --cached --quiet; then
+            echo "::error::The migration patch changes nothing"
+            exit 1
+          fi
+          if git diff --cached --summary | grep -q 'mode 120000'; then
+            echo "::error::The migration patch adds a symlink"
+            exit 1
+          fi
+          new='^drizzle/(meta/)?[0-9]{4}_[A-Za-z0-9_]+\.(sql|json)$'
+          git diff --cached --name-status --no-renames | while IFS=$'\t' read -r status path; do
+            if [[ "$status" == A && "$path" =~ $new ]]; then continue; fi
+            if [[ "$status" == M && "$path" == drizzle/meta/_journal.json ]]; then continue; fi
+            echo "::error::Unexpected change in the migration patch: $status $path"
+            exit 1
+          done
+
+      - id: push
+        name: Commit and push
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        # A plain push only fast-forwards: if the branch moved past HEAD_SHA,
+        # it fails and the newer push runs its own check.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "chore(db): generate migration for ${HEAD_SHA::7}"
+          git push origin "HEAD:refs/heads/$HEAD_REF"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  check:
+    needs: [generate, commit]
+    if: >-
+      !cancelled() && needs.generate.result == 'success' &&
+      (needs.commit.result == 'success' || needs.commit.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.commit.outputs.sha || github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@v7
+        with:
+          name: pr-check-migration
+          path: ${{ runner.temp }}/migration
+
+      - id: check
+        name: Typecheck and lint
+        env:
+          TRIGGER_SHA: ${{ github.event.pull_request.head.sha }}
+          MIGRATION_SHA: ${{ needs.commit.outputs.sha }}
+          GENERATE_STATUS: ${{ needs.generate.outputs.status }}
+          GENERATE_LOG: ${{ runner.temp }}/migration/generate.log
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        # Errors go to Develop: plain text, no colours, at most 20 KB each.
+        run: |
+          mkdir -p pr-check
+          clean() { sed 's/\x1b\[[0-9;]*m//g' "$1" | head -c 20000; }
+          tsc=0
+          { pnpm exec next typegen && pnpm exec tsc --noEmit --pretty false; } > "$RUNNER_TEMP/typecheck.log" 2>&1 || tsc=$?
+          lint=0
+          pnpm exec eslint --quiet > "$RUNNER_TEMP/lint.log" 2>&1 || lint=$?
+          clean "$GENERATE_LOG" > "$RUNNER_TEMP/generate.txt"
+          clean "$RUNNER_TEMP/typecheck.log" > "$RUNNER_TEMP/typecheck.txt"
+          clean "$RUNNER_TEMP/lint.log" > "$RUNNER_TEMP/lint.txt"
+          cat "$RUNNER_TEMP/typecheck.txt" "$RUNNER_TEMP/lint.txt"
+          jq -n \
+            --arg sha "$(git rev-parse HEAD)" \
+            --arg trigger_sha "$TRIGGER_SHA" \
+            --arg migration_sha "$MIGRATION_SHA" \
+            --arg generate_status "$GENERATE_STATUS" \
+            --rawfile generate_log "$RUNNER_TEMP/generate.txt" \
+            --argjson tsc "$tsc" --rawfile tsc_log "$RUNNER_TEMP/typecheck.txt" \
+            --argjson lint "$lint" --rawfile lint_log "$RUNNER_TEMP/lint.txt" \
+            --argjson run_id "$RUN_ID" --argjson run_attempt "$RUN_ATTEMPT" \
+            '{
+              sha: $sha,
+              trigger_sha: $trigger_sha,
+              migration_sha: (if $migration_sha == "" then null else $migration_sha end),
+              ok: ($generate_status == "ok" and $tsc == 0 and $lint == 0),
+              migrate: {ok: ($generate_status == "ok"), output: (if $generate_status == "ok" then null else $generate_log end)},
+              typecheck: {ok: ($tsc == 0), output: (if $tsc == 0 then null else $tsc_log end)},
+              lint: {ok: ($lint == 0), output: (if $lint == 0 then null else $lint_log end)},
+              run_id: $run_id,
+              run_attempt: $run_attempt
+            }' > pr-check/check.json
+          echo "ok=$(jq -r .ok pr-check/check.json)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pr-check
+          path: pr-check/check.json
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Fail on errors
+        if: steps.check.outputs.ok != 'true'
+        run: |
+          echo "::error::pr-check found errors (see check.json)"
+          exit 1
