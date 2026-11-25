@@ -210,8 +210,10 @@ test.describe("criteria", () => {
             const message = (
               failure instanceof Error ? failure.message : String(failure)
             ).replace(ANSI, "");
-            const snapshot = await page
-              .locator("body")
+            // The main content: the header and the nav are the same on every page.
+            const main = page.locator("main").filter({ visible: true }).first();
+            const root = (await main.count()) ? main : page.locator("body");
+            const snapshot = await root
               .ariaSnapshot({ timeout: 5_000 })
               .catch(() => "");
             mkdirSync(OUT_DIR, { recursive: true });
