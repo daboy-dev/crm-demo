@@ -46,7 +46,9 @@ async function InvoicesContent({
   return (
     <>
       <StatusFilter current={status ?? ""} />
-      <InvoicesTable status={status} />
+      <Suspense key={status ?? "all"} fallback={<Loading />}>
+        <InvoicesTable status={status} />
+      </Suspense>
     </>
   );
 }
@@ -54,7 +56,9 @@ async function InvoicesContent({
 async function InvoicesTable({ status }: { status?: InvoiceStatus }) {
   // Read the database at request time, never at build time.
   await connection();
-  const invoices = await listInvoices(status);
+  const all = await listInvoices(status);
+  // Defensive: only keep rows matching the requested status.
+  const invoices = status ? all.filter((i) => i.status === status) : all;
   const today = todayIso();
   return (
     <Table data-testid="invoices-table">
