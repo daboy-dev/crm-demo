@@ -24,3 +24,16 @@ export function addDays(isoDate: string, days: number): string {
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
+
+/**
+ * True when an invoice is still pending and its due date (`YYYY-MM-DD`) is
+ * before today. `today` can be a date string or a function returning one.
+ */
+export function isOverdue(
+  dueAt: string,
+  status: string,
+  today: string | (() => string) = () => todayIso(),
+): boolean {
+  const now = typeof today === "function" ? today() : today;
+  return status === "pending" && dueAt < now;
+}
