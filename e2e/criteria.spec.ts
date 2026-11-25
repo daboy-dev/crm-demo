@@ -1,6 +1,6 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { z } from "zod";
 import { byTestId, isPreviewDeployment, login } from "./helpers";
 import { pages } from "./pages";
@@ -130,6 +130,21 @@ async function goto(page: Page, step: Extract<Step, { action: "goto" }>) {
   await expect(page).not.toHaveURL(new RegExp(`${entry.fromList}$`));
 }
 
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** A form field shows its value, not its text: check what the user sees. */
+async function expectText(element: Locator, expected: string) {
+  await expect(element).toBeVisible();
+  const field = await element.evaluate((el) =>
+    ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName),
+  );
+  if (field) {
+    await expect(element).toHaveValue(new RegExp(escape(expected)));
+  } else {
+    await expect(element).toContainText(expected);
+  }
+}
+
 async function run(page: Page, step: Step, stamp: string) {
   const fill = (value: string) => value.replaceAll("{{stamp}}", stamp);
   if (step.action === "goto") return goto(page, step);
@@ -147,10 +162,10 @@ async function run(page: Page, step: Step, stamp: string) {
       return expect(one).toBeVisible();
     case "expectText": {
       const expected = fill(step.text);
-      if (!step.all) return expect(one).toContainText(expected);
+      if (!step.all) return expectText(one, expected);
       await expect(all.first()).toBeVisible();
       for (const element of await all.all()) {
-        await expect(element).toContainText(expected);
+        await expectText(element, expected);
       }
       return;
     }
