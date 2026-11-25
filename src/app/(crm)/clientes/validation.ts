@@ -5,7 +5,13 @@ const optionalText = z
   .trim()
   .transform((value) => (value === "" ? null : value));
 
-export const clientFields = ["name", "email", "nif", "phone", "company"] as const;
+export const clientFields = [
+  "name",
+  "email",
+  "nif",
+  "phone",
+  "company",
+] as const;
 
 export const clientSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio."),

@@ -29,7 +29,10 @@ export default function ContactPage() {
           <div>
             <dt className="text-slate-500 font-medium">Teléfono</dt>
             <dd className="mt-1 text-slate-900 font-semibold">
-              <a href="tel:+34910000000" className="text-blue-700 hover:underline">
+              <a
+                href="tel:+34910000000"
+                className="text-blue-700 hover:underline"
+              >
                 +34 910 000 000
               </a>
             </dd>
