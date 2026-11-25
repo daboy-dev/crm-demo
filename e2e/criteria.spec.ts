@@ -36,7 +36,13 @@ const stepSchema = z.discriminatedUnion("action", [
     value: z.string().max(200),
     nth,
   }),
-  z.strictObject({ action: z.literal("select"), testId, value: text, nth }),
+  // An option may have an empty value ("Todas" in a filter).
+  z.strictObject({
+    action: z.literal("select"),
+    testId,
+    value: z.string().max(200),
+    nth,
+  }),
   z.strictObject({ action: z.literal("click"), testId, nth }),
   z.strictObject({
     action: z.literal("expectVisible"),
@@ -154,7 +160,11 @@ async function run(page: Page, step: Step, stamp: string) {
     case "fill":
       return one.fill(fill(step.value), { timeout: ACTION_TIMEOUT });
     case "select":
-      await one.selectOption(fill(step.value), { timeout: ACTION_TIMEOUT });
+      // By value only: an empty label or value must not match another option.
+      await one.selectOption(
+        { value: fill(step.value) },
+        { timeout: ACTION_TIMEOUT },
+      );
       return;
     case "click":
       return one.click({ timeout: ACTION_TIMEOUT });
