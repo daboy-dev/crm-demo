@@ -41,6 +41,12 @@ export function ClientForm({
         required
       />
       <Field
+        label="NIF"
+        name="nif"
+        defaultValue={value("nif")}
+        error={state.errors.nif}
+      />
+      <Field
         label="Teléfono"
         name="phone"
         type="tel"
