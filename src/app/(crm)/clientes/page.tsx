@@ -5,11 +5,19 @@ import { Suspense } from "react";
 import { ButtonLink } from "@/components/button";
 import { Loading, PageHeader } from "@/components/page-header";
 import { EmptyRow, Table, Td, Th, Tr } from "@/components/table";
+import { ClientSearchInput } from "./client-search-input";
 import { listClients } from "./queries";
 
 export const metadata: Metadata = { title: "Clientes · crm-demo" };
 
-export default function ClientsPage() {
+type SearchParams = Promise<{ q?: string }> | { q?: string };
+
+export default async function ClientsPage(props: {
+  searchParams?: SearchParams;
+}) {
+  const searchParams = await props.searchParams;
+  const query = searchParams?.q ?? "";
+
   return (
     <>
       <PageHeader
@@ -20,17 +28,20 @@ export default function ClientsPage() {
           </ButtonLink>
         }
       />
-      <Suspense fallback={<Loading />}>
-        <ClientsTable />
+      <div className="mb-4">
+        <ClientSearchInput />
+      </div>
+      <Suspense key={query} fallback={<Loading />}>
+        <ClientsTable query={query} />
       </Suspense>
     </>
   );
 }
 
-async function ClientsTable() {
+async function ClientsTable({ query }: { query: string }) {
   // Read the database at request time, never at build time.
   await connection();
-  const clients = await listClients();
+  const clients = await listClients(query);
   return (
     <Table data-testid="clients-table">
       <thead>
