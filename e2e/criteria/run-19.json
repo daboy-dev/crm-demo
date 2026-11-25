@@ -1,0 +1,90 @@
+{
+  "run": 19,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "En /facturas existe el desplegable de estado y al elegir Pendientes todas las filas visibles tienen la etiqueta Pendiente.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoice-status-filter"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "pending"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Pendiente",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "En /facturas, al elegir Pagadas todas las filas visibles tienen la etiqueta Pagada.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoice-status-filter"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "paid"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Pagada",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 1,
+      "task": 1,
+      "text": "Tras filtrar por Pagadas, al elegir Todas la tabla vuelve a cargar y la lista no queda vacía de filas.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "paid"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "all"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoices-table"
+        },
+        {
+          "action": "expectCount",
+          "testId": "invoice-row",
+          "min": 1
+        }
+      ]
+    }
+  ]
+}
