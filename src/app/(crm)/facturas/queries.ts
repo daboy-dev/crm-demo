@@ -1,10 +1,11 @@
 import { desc, eq, like } from "drizzle-orm";
-import { getDb } from "@/db/client";
-import { invoices } from "@/db/schema";
+import { getDb } from "db/client";
+import { invoices, InvoiceStatus } from "db/schema";
 
 /** All invoices, newest first, with client and lines (to compute totals). */
-export async function listInvoices() {
+export async function listInvoices(status?: InvoiceStatus) {
   return getDb().query.invoices.findMany({
+    where: status ? eq(invoices.status, status) : undefined,
     orderBy: [desc(invoices.issuedAt), desc(invoices.id)],
     with: {
       client: { columns: { id: true, name: true } },

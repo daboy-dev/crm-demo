@@ -2,34 +2,57 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { Loading, PageHeader } from "@/components/page-header";
-import { StatusBadge } from "@/components/status-badge";
-import { EmptyRow, Table, Td, Th, Tr } from "@/components/table";
-import { formatDate, isOverdue, todayIso } from "@/lib/dates";
-import { formatEur } from "@/lib/money";
-import { documentTotals } from "@/lib/totals";
+import { Loading, PageHeader } from "components/page-header";
+import { StatusBadge } from "components/status-badge";
+import { EmptyRow, Table, Td, Th, Tr } from "components/table";
+import { formatDate, isOverdue, todayIso } from "lib/dates";
+import { formatEur } from "lib/money";
+import { documentTotals } from "lib/totals";
+import { InvoiceStatus } from "db/schema";
+import { InvoiceStatusFilter } from "./invoice-status-filter";
 import { listInvoices } from "./queries";
 
 export const metadata: Metadata = { title: "Facturas · crm-demo" };
 
-export default function InvoicesPage() {
+export default function InvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>;
+}) {
   return (
     <>
       <PageHeader
         title="Facturas"
         description="Las facturas se generan desde un presupuesto aceptado."
+        actions={
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <Suspense fallback={null}>
+              <InvoiceStatusFilter />
+            </Suspense>
+          </div>
+        }
       />
       <Suspense fallback={<Loading />}>
-        <InvoicesTable />
+        <InvoicesTable searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function InvoicesTable() {
+async function InvoicesTable({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>;
+}) {
+  const { estado } = await searchParams;
+  const status =
+    estado === "pending" || estado === "paid"
+      ? (estado as InvoiceStatus)
+      : undefined;
+
   // Read the database at request time, never at build time.
   await connection();
-  const invoices = await listInvoices();
+  const invoices = await listInvoices(status);
   const today = todayIso();
   return (
     <Table data-testid="invoices-table">
