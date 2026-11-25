@@ -15,6 +15,7 @@ export const pages: CapturedPage[] = [
   { name: "clientes", path: "/clientes" },
   { name: "presupuestos", path: "/presupuestos" },
   { name: "facturas", path: "/facturas" },
+  { name: "contacto", path: "/contacto" },
   { name: "cliente-detalle", fromList: "/clientes", rowTestId: "client-row" },
   {
     name: "presupuesto-detalle",
