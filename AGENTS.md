@@ -45,13 +45,25 @@ TypeScript estricto, Tailwind, Drizzle + Neon (driver HTTP). Sin librería de co
 ## Cómo añadir un campo (ejemplo: `clients.website`)
 
 1. `src/db/schema.ts`: añade la columna (`website: text()`).
-2. `pnpm db:generate` → crea `drizzle/NNNN_*.sql`. Súbelo con el cambio; no edites migraciones ya subidas.
+2. **No escribas la migración ni ejecutes comandos.** Basta con cambiar `src/db/schema.ts`: en cada
+   push al PR, `pr-check` ejecuta `drizzle-kit generate` y sube un commit con la migración (ver abajo).
 3. `queries.ts`: si la consulta elige columnas, añádela.
 4. `validation.ts`: añade el campo al esquema Zod y a la lista `*Fields`.
 5. `actions.ts`: normalmente no cambia (usa el esquema). Revisa si hay `set`/`values` explícitos.
 6. UI: el formulario (`*-form.tsx`, y su `initial` en la página de editar), el detalle y, si procede, la lista.
 7. `data-testid` en lo nuevo (ver abajo). Si cambia la lógica de `src/lib`, añade tests.
 8. Si el seed debe rellenarlo, actualiza `src/db/seed.ts` sin romper la idempotencia.
+
+## Cambios de esquema
+
+`drizzle-kit generate` se ejecuta en CI y no puede hacer preguntas, así que **solo cambios que
+añaden**:
+
+- Tablas nuevas, columnas nuevas, valores nuevos al final de un enum e índices nuevos.
+- Una columna nueva en una tabla con datos es **nullable o lleva `.default(...)`**: si no, la
+  migración falla en las filas que ya existen.
+- **Nunca** renombres ni borres tablas, columnas o valores de un enum, ni cambies el tipo de una
+  columna: `drizzle-kit` preguntaría si es un renombrado y el job fallaría.
 
 ## `data-testid`
 
@@ -81,6 +93,16 @@ envueltos en `<ResetOnHide>` para empezar vacíos al volver.
   su rama de Neon). En producción y en local se salta.
 - Puedes añadir tests nuevos en `e2e/*.spec.ts` usando `byTestId` y `login` de `e2e/helpers.ts`.
 
+## Comprobación de cada PR
+
+`.github/workflows/pr-check.yml` se ejecuta en cada push a un PR:
+
+1. **`generate`**: `drizzle-kit generate` sobre la cabeza del PR, sin permisos de escritura.
+2. **`commit`**: si hay migración nueva, la sube como un commit de `github-actions[bot]` encima de la
+   cabeza. Solo acepta archivos nuevos de `drizzle/` y el journal, y no ejecuta código de la rama.
+3. **`check`**: `tsc --noEmit` y ESLint sobre la cabeza resultante, y el artifact `pr-check`
+   (`check.json`) con los errores, que el panel `crm-agents` devuelve a Develop.
+
 ## Convenciones
 
 - Textos de UI en **español**; código, nombres, comentarios y commits en inglés.
@@ -88,15 +110,16 @@ envueltos en `<ResetOnHide>` para empezar vacíos al volver.
   (en TypeScript, `camelCase`).
 - Commits en Conventional Commits (`feat:`, `fix:`, `test:`…), pequeños.
 - Responsive: debe verse bien a 390 px. Oculta columnas secundarias con `hidden sm:table-cell`.
-- Antes de terminar: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`.
+- Antes de terminar (si trabajas en local): `pnpm lint`, `pnpm format:check`, `pnpm typecheck`,
+  `pnpm test`. El agente Develop no ejecuta comandos: `pr-check` le devuelve los errores.
 
 ## No tocar
 
 - Auth: `src/lib/auth.ts`, `src/app/(auth)/`, y `src/proxy.ts` (en Next 16 el middleware se llama proxy).
-- Config de build y despliegue: `next.config.ts`, `package.json` (scripts), `drizzle.config.ts`,
-  `tsconfig.json`, `eslint.config.mjs`, `playwright.config.ts`.
+- Config de build y despliegue: `next.config.ts`, `package.json`, `pnpm-lock.yaml`,
+  `drizzle.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `playwright.config.ts`.
 - **`.github/**`** (workflows incluidos) y los helpers de `e2e/` (`helpers.ts`,
   `screenshots.spec.ts`). El panel rechaza cualquier cambio que los toque.
-- Migraciones ya subidas en `drizzle/`.
+- **`drizzle/**`**: las migraciones solo las escribe `pr-check`.
 - `/api/health`.
-- No añadas dependencias salvo que la petición lo exija.
+- No añadas dependencias: no se puede actualizar el lockfile.
