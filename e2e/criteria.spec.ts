@@ -163,10 +163,30 @@ async function run(page: Page, step: Step, stamp: string) {
     case "expectText": {
       const expected = fill(step.text);
       if (!step.all) return expectText(one, expected);
+      // The list may re-render (a filter navigates): read every visible
+      // element at once and retry until they all match, never by index.
       await expect(all.first()).toBeVisible();
-      for (const element of await all.all()) {
-        await expectText(element, expected);
-      }
+      await expect
+        .poll(
+          async () => {
+            const values = await all.evaluateAll((elements) =>
+              elements.map((el) =>
+                el instanceof HTMLInputElement ||
+                el instanceof HTMLTextAreaElement ||
+                el instanceof HTMLSelectElement
+                  ? el.value
+                  : (el.textContent ?? ""),
+              ),
+            );
+            return (
+              values.length > 0 && values.every((v) => v.includes(expected))
+            );
+          },
+          {
+            message: `todos los ${step.testId} visibles contienen "${expected}"`,
+          },
+        )
+        .toBe(true);
       return;
     }
     case "expectCount":
