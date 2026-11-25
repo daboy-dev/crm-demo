@@ -5,32 +5,54 @@ import { Suspense } from "react";
 import { ButtonLink } from "@/components/button";
 import { Loading, PageHeader } from "@/components/page-header";
 import { EmptyRow, Table, Td, Th, Tr } from "@/components/table";
+import { ClientSearch } from "./client-search";
 import { listClients } from "./queries";
 
 export const metadata: Metadata = { title: "Clientes · crm-demo" };
 
-export default function ClientsPage() {
+export default function ClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
   return (
     <>
       <PageHeader
         title="Clientes"
         actions={
-          <ButtonLink href="/clientes/nuevo" data-testid="new-client-button">
-            Nuevo cliente
-          </ButtonLink>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <Suspense fallback={null}>
+              <ClientSearch />
+            </Suspense>
+            <ButtonLink href="/clientes/nuevo" data-testid="new-client-button">
+              Nuevo cliente
+            </ButtonLink>
+          </div>
         }
       />
       <Suspense fallback={<Loading />}>
-        <ClientsTable />
+        <ClientsTable searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function ClientsTable() {
-  // Read the database at request time, never at build time.
+async function ClientsTable({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search = "" } = await searchParams;
   await connection();
-  const clients = await listClients();
+  const allClients = await listClients();
+  const query = search.trim().toLowerCase();
+
+  const clients = allClients.filter(
+    (client) =>
+      client.name.toLowerCase().includes(query) ||
+      client.email.toLowerCase().includes(query),
+  );
+
   return (
     <Table data-testid="clients-table">
       <thead>
@@ -44,7 +66,7 @@ async function ClientsTable() {
       </thead>
       <tbody className="divide-y divide-slate-100">
         {clients.length === 0 && (
-          <EmptyRow colSpan={5}>Todavía no hay clientes.</EmptyRow>
+          <EmptyRow colSpan={5}>No se encontraron clientes.</EmptyRow>
         )}
         {clients.map((client) => (
           <Tr key={client.id} data-testid="client-row" data-id={client.id}>
