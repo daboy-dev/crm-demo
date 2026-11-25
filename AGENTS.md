@@ -92,6 +92,11 @@ envueltos en `<ResetOnHide>` para empezar vacíos al volver.
 - `e2e/write-flow.spec.ts` crea datos, así que solo se ejecuta contra vistas previas (cada una tiene
   su rama de Neon). En producción y en local se salta.
 - Puedes añadir tests nuevos en `e2e/*.spec.ts` usando `byTestId` y `login` de `e2e/helpers.ts`.
+- **Criterios de aceptación** (`e2e/criteria.spec.ts`): el agente Testing traduce los criterios de cada
+  plan a pasos declarativos, y el panel los sube a `e2e/criteria/run-<id>.json`. El ejecutor crea un test
+  por criterio (`run-<id> r<revisión> <criterio>`) en los dos tamaños, y solo contra vistas previas. Los
+  pasos seleccionan **solo por `data-testid`**: usa exactamente los `data-testid` que pide la tarea.
+  Al fusionar, los JSON se quedan como pruebas de regresión: no rompas los criterios de runs anteriores.
 
 ## Comprobación de cada PR
 
@@ -119,7 +124,8 @@ envueltos en `<ResetOnHide>` para empezar vacíos al volver.
 - Config de build y despliegue: `next.config.ts`, `package.json`, `pnpm-lock.yaml`,
   `drizzle.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `playwright.config.ts`.
 - **`.github/**`** (workflows incluidos) y los helpers de `e2e/` (`helpers.ts`,
-  `screenshots.spec.ts`). El panel rechaza cualquier cambio que los toque.
+  `screenshots.spec.ts`), el ejecutor `e2e/criteria.spec.ts` y los criterios `e2e/criteria/**`. El panel
+  rechaza cualquier cambio que los toque.
 - **`drizzle/**`**: las migraciones solo las escribe `pr-check`.
 - `/api/health`.
 - No añadas dependencias: no se puede actualizar el lockfile.
