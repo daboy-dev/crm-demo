@@ -56,9 +56,7 @@ async function InvoicesContent({
 async function InvoicesTable({ status }: { status?: InvoiceStatus }) {
   // Read the database at request time, never at build time.
   await connection();
-  const all = await listInvoices(status);
-  // Defensive: only keep rows matching the requested status.
-  const invoices = status ? all.filter((i) => i.status === status) : all;
+  const invoices = await listInvoices(status);
   const today = todayIso();
   return (
     <Table data-testid="invoices-table">
