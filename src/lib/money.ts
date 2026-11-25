@@ -24,3 +24,5 @@ export function parseEurToCents(input: string): number | null {
   const [whole = "0", fraction = ""] = value.split(".");
   return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
+
+export const broken: number = "not a number";
