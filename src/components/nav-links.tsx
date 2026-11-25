@@ -7,6 +7,7 @@ export const NAV_ITEMS = [
   { href: "/clientes", label: "Clientes" },
   { href: "/presupuestos", label: "Presupuestos" },
   { href: "/facturas", label: "Facturas" },
+  { href: "/contacto", label: "Contacto" },
 ] as const;
 
 const linkClass = "rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap";
