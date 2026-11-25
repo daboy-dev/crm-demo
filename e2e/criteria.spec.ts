@@ -88,7 +88,6 @@ const MAX_SNAPSHOT = 4_000;
  */
 const ACTION_TIMEOUT = 10_000;
 const TEST_TIMEOUT = 90_000;
-// eslint-disable-next-line no-control-regex
 const ANSI = /\u001b\[[0-9;]*m/g;
 
 function describe(step: Step): string {
