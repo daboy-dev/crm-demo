@@ -1,0 +1,102 @@
+{
+  "run": 20,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 2,
+      "task": 1,
+      "text": "En /facturas existe el desplegable de estado con las opciones de value \"\", pending y paid, y la tabla de facturas se muestra.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoice-status-filter"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoices-table"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 2,
+      "task": 1,
+      "text": "En /facturas, al seleccionar el valor pending en el desplegable, todas las filas visibles tienen la etiqueta de estado Pendiente.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "pending"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Pendiente",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 2,
+      "task": 1,
+      "text": "En /facturas, al seleccionar el valor paid en el desplegable, todas las filas visibles tienen la etiqueta de estado Pagada.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "paid"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Pagada",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "revision": 2,
+      "task": 1,
+      "text": "Tras filtrar por pending, al volver a seleccionar el valor \"\" (Todas) la tabla vuelve a mostrar las facturas sin filtrar.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "facturas"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": "pending"
+        },
+        {
+          "action": "select",
+          "testId": "invoice-status-filter",
+          "value": ""
+        },
+        {
+          "action": "expectVisible",
+          "testId": "invoices-table"
+        },
+        {
+          "action": "expectCount",
+          "testId": "invoice-row",
+          "min": 1
+        }
+      ]
+    }
+  ]
+}
