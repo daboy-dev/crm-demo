@@ -22,7 +22,7 @@ export function QuoteStatusFilter({ value }: { value: string }) {
 
   return (
     <select
-      data-testid="quote-status-filter-simulated"
+      data-testid="quote-status-filter"
       aria-label="Filtrar por estado"
       value={status}
       onChange={handleChange}
