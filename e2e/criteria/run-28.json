@@ -1,0 +1,94 @@
+{
+  "run": 28,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "En /presupuestos, al elegir Borrador en el filtro de estado, todas las filas quote-row visibles muestran la etiqueta Borrador en status-badge.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuestos"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": "draft"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quotes-table"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Borrador",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "En /presupuestos, al elegir Aceptado en el filtro de estado, ninguna fila muestra una etiqueta distinta de Aceptado.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuestos"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": "accepted"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quote-row"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Aceptado",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 1,
+      "task": 1,
+      "text": "Tras filtrar por un estado y volver a elegir Todos, la tabla quotes-table vuelve a mostrar presupuestos de varios estados.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuestos"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": "draft"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quotes-table"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": ""
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quotes-table"
+        },
+        {
+          "action": "expectCount",
+          "testId": "quote-row",
+          "min": 2
+        }
+      ]
+    }
+  ]
+}
