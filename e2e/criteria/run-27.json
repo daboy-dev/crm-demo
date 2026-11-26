@@ -1,0 +1,86 @@
+{
+  "run": 27,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "Al crear un cliente nuevo y entrar en su detalle, client-quotes-count muestra 0.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "click",
+          "testId": "new-client-button"
+        },
+        {
+          "action": "fill",
+          "testId": "field-name",
+          "value": "Cliente {{stamp}}"
+        },
+        {
+          "action": "fill",
+          "testId": "field-email",
+          "value": "test-{{stamp}}@example.com"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "expectText",
+          "testId": "client-quotes-count",
+          "text": "0"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "Tras crear un presupuesto para un cliente desde su detalle, el detalle de ese cliente muestra 1 en client-quotes-count.",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/clientes/nuevo"
+        },
+        {
+          "action": "fill",
+          "testId": "field-name",
+          "value": "Cliente {{stamp}}"
+        },
+        {
+          "action": "fill",
+          "testId": "field-email",
+          "value": "test-{{stamp}}@example.com"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "click",
+          "testId": "new-quote-for-client-button"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "click",
+          "testId": "new-client-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "field-name"
+        }
+      ]
+    }
+  ]
+}

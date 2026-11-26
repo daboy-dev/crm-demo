@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { EmptyRow, Table, Td, Th, Tr } from "@/components/table";
 import { formatDate } from "@/lib/dates";
 import { parseId } from "@/lib/ids";
-import { getClientWithDocuments } from "../queries";
+import { countClientQuotes, getClientWithDocuments } from "../queries";
 
 export default function ClientDetailPage({
   params,
@@ -25,7 +25,9 @@ async function ClientDetail({
   params: PageProps<"/clientes/[id]">["params"];
 }) {
   const id = parseId((await params).id);
-  const client = id ? await getClientWithDocuments(id) : null;
+  const [client, quotesCount] = id
+    ? await Promise.all([getClientWithDocuments(id), countClientQuotes(id)])
+    : [null, 0];
   if (!client) notFound();
 
   return (
@@ -71,6 +73,11 @@ async function ClientDetail({
               label: "Notas internas",
               value: client.notes,
               testId: "client-notes",
+            },
+            {
+              label: "Presupuestos",
+              value: quotesCount,
+              testId: "client-quotes-count",
             },
             {
               label: "Alta",

@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { clients, invoices, quotes, type ClientType } from "@/db/schema";
 
@@ -23,6 +23,15 @@ export async function getClient(id: number) {
     .from(clients)
     .where(eq(clients.id, id));
   return client ?? null;
+}
+
+/** Number of quotes a client has. */
+export async function countClientQuotes(id: number) {
+  const [row] = await getDb()
+    .select({ value: count() })
+    .from(quotes)
+    .where(eq(quotes.clientId, id));
+  return row?.value ?? 0;
 }
 
 /** A client with its quotes and invoices, newest first. */
