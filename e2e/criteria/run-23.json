@@ -1,0 +1,58 @@
+{
+  "run": 23,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "la página de resumen carga correctamente y muestra el título de resumen y el contenedor principal",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/resumen"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "page-title"
+        },
+        {
+          "action": "expectText",
+          "testId": "page-title",
+          "text": "Resumen"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "summary-detail"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "el resumen muestra las métricas de clientes, presupuestos enviados y el importe pendiente",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/resumen"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "summary-detail"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "clients-count"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "sent-quotes-count"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "pending-amount"
+        }
+      ]
+    }
+  ]
+}

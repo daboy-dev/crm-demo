@@ -12,6 +12,7 @@ export type CapturedPage =
   | { name: string; fromList: string; rowTestId: string };
 
 export const pages: CapturedPage[] = [
+  { name: "resumen", path: "/resumen" },
   { name: "clientes", path: "/clientes" },
   { name: "presupuestos", path: "/presupuestos" },
   { name: "facturas", path: "/facturas" },
