@@ -1,10 +1,11 @@
 import { desc, eq, like } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { quotes } from "@/db/schema";
+import { quotes, type QuoteStatus } from "@/db/schema";
 
-/** All quotes, newest first, with client and lines (to compute totals). */
-export async function listQuotes() {
+/** All quotes, newest first, with client and lines (to compute totals). Optionally filtered by status. */
+export async function listQuotes(status?: QuoteStatus) {
   return getDb().query.quotes.findMany({
+    where: status ? eq(quotes.status, status) : undefined,
     orderBy: [desc(quotes.issuedAt), desc(quotes.id)],
     with: {
       client: { columns: { id: true, name: true } },
