@@ -1,0 +1,90 @@
+{
+  "run": 29,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "En /presupuestos existe el selector de estado y al elegir Borrador todas las filas visibles tienen la etiqueta Borrador.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuestos"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quote-status-filter"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": "draft"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quotes-table"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Borrador",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "En /presupuestos, al elegir el estado Enviado, ninguna fila muestra una etiqueta distinta de Enviado.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuestos"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": "sent"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Enviado",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 1,
+      "task": 1,
+      "text": "Tras filtrar por un estado, al elegir Todos vuelven a mostrarse presupuestos de la tabla quotes-table.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuestos"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": "draft"
+        },
+        {
+          "action": "select",
+          "testId": "quote-status-filter",
+          "value": ""
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quotes-table"
+        },
+        {
+          "action": "expectCount",
+          "testId": "quote-row",
+          "min": 1
+        }
+      ]
+    }
+  ]
+}
