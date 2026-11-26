@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/dates";
 import { parseId } from "@/lib/ids";
 import { quoteStatusLabels } from "@/lib/status";
 import { generateInvoice } from "../../facturas/actions";
-import { changeQuoteStatus } from "../actions";
+import { changeQuoteStatus, duplicateQuote } from "../actions";
 import { getQuote } from "../queries";
 
 export default function QuoteDetailPage({
@@ -38,21 +38,32 @@ async function QuoteDetail({
         title={`Presupuesto ${quote.number}`}
         description={<StatusBadge kind="quote" status={quote.status} />}
         actions={
-          quote.invoice ? (
-            <ButtonLink
-              href={`/facturas/${quote.invoice.id}`}
-              variant="secondary"
-              data-testid="view-invoice-button"
-            >
-              Ver factura {quote.invoice.number}
-            </ButtonLink>
-          ) : quote.status === "accepted" ? (
-            <form action={generateInvoice.bind(null, quote.id)}>
-              <Button type="submit" data-testid="generate-invoice-button">
-                Generar factura
+          <div className="flex flex-wrap gap-2">
+            <form action={duplicateQuote.bind(null, quote.id)}>
+              <Button
+                type="submit"
+                variant="secondary"
+                data-testid="duplicate-quote-button-simulated"
+              >
+                Duplicar
               </Button>
             </form>
-          ) : null
+            {quote.invoice ? (
+              <ButtonLink
+                href={`/facturas/${quote.invoice.id}`}
+                variant="secondary"
+                data-testid="view-invoice-button"
+              >
+                Ver factura {quote.invoice.number}
+              </ButtonLink>
+            ) : quote.status === "accepted" ? (
+              <form action={generateInvoice.bind(null, quote.id)}>
+                <Button type="submit" data-testid="generate-invoice-button">
+                  Generar factura
+                </Button>
+              </form>
+            ) : null}
+          </div>
         }
       />
       <div className="space-y-8" data-testid="quote-detail">
@@ -122,4 +133,5 @@ async function QuoteDetail({
       </div>
     </>
   );
+  Join;
 }
