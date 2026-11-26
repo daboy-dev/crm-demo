@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export const NAV_ITEMS = [
+  { href: "/resumen", label: "Resumen" },
   { href: "/clientes", label: "Clientes" },
   { href: "/presupuestos", label: "Presupuestos" },
   { href: "/facturas", label: "Facturas" },
@@ -22,7 +23,7 @@ export function NavLinks() {
         href={item.href}
         data-testid={`nav-${item.href.slice(1)}`}
         aria-current={active ? "page" : undefined}
-        className={`${linkClass} ${active ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-200"}`}
+        className={`${linkClass} ${active ? "bg-slate-950 text-white" : "text-slate-700 hover:bg-slate-200"}`}
       >
         {item.label}
       </Link>
