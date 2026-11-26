@@ -36,6 +36,8 @@ async function EditClient({
           initial={{
             name: client.name,
             email: client.email,
+            type: client.type,
+            nif: client.nif ?? "",
             phone: client.phone ?? "",
             company: client.company ?? "",
             notes: client.notes ?? "",

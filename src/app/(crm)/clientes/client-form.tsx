@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { Button, ButtonLink } from "@/components/button";
-import { Field, TextareaField } from "@/components/field";
+import { Field, SelectField, TextareaField } from "@/components/field";
 import { emptyFormState, type FormState } from "@/lib/forms";
 
 type Action = (prev: FormState, formData: FormData) => Promise<FormState>;
@@ -40,6 +40,15 @@ export function ClientForm({
         error={state.errors.email}
         required
       />
+      <SelectField
+        label="Tipo"
+        name="type"
+        defaultValue={value("type") || "individual"}
+        error={state.errors.type}
+      >
+        <option value="individual">Particular</option>
+        <option value="company">Empresa</option>
+      </SelectField>
       <Field
         label="NIF"
         name="nif"
