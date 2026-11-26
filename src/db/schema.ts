@@ -17,8 +17,11 @@ export const quoteStatus = pgEnum("quote_status", [
 
 export const invoiceStatus = pgEnum("invoice_status", ["pending", "paid"]);
 
+export const clientType = pgEnum("client_type", ["individual", "company"]);
+
 export type QuoteStatus = (typeof quoteStatus.enumValues)[number];
 export type InvoiceStatus = (typeof invoiceStatus.enumValues)[number];
+export type ClientType = (typeof clientType.enumValues)[number];
 
 export const clients = pgTable("clients", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -28,6 +31,7 @@ export const clients = pgTable("clients", {
   phone: text(),
   company: text(),
   notes: text(),
+  type: clientType().notNull().default("individual"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
