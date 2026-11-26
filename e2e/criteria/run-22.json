@@ -1,0 +1,54 @@
+{
+  "run": 22,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "El detalle del presupuesto muestra el botón para duplicar",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuesto-detalle"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quote-detail"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "duplicate-quote-button"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "Al pulsar el botón de duplicar se crea un nuevo presupuesto en borrador y se muestra su detalle",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "presupuesto-detalle"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "duplicate-quote-button"
+        },
+        {
+          "action": "click",
+          "testId": "duplicate-quote-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "quote-detail"
+        },
+        {
+          "action": "expectText",
+          "testId": "status-badge",
+          "text": "Borrador"
+        }
+      ]
+    }
+  ]
+}
