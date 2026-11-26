@@ -27,7 +27,7 @@ async function SummaryContent() {
 
   return (
     <div
-      data-testid="summary-detail-simulated"
+      data-testid="summary-detail"
       className="grid grid-cols-1 gap-4 sm:grid-cols-3"
     >
       <div className="rounded-lg border border-slate-200 bg-white p-6">
