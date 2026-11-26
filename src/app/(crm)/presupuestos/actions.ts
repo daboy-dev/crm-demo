@@ -6,9 +6,10 @@ import { redirect } from "next/navigation";
 import { getDb } from "@/db/client";
 import { uniqueViolation } from "@/db/errors";
 import { invoices, quotes } from "@/db/schema";
+import { todayIso } from "@/lib/dates";
 import { fieldErrors, formValues, type FormState } from "@/lib/forms";
 import { nextDocumentNumber } from "@/lib/numbering";
-import { listQuoteNumbers } from "./queries";
+import { getQuote, listQuoteNumbers } from "./queries";
 import {
   quoteFields,
   quoteSchema,
@@ -35,6 +36,27 @@ export async function createQuote(
   const id = await insertQuoteWithNumber(parsed.data);
   revalidatePath("/presupuestos");
   redirect(`/presupuestos/${id}`);
+}
+
+export async function duplicateQuote(id: number): Promise<void> {
+  const existing = await getQuote(id);
+  if (!existing) throw new Error("Quote not found");
+
+  const input: QuoteInput = {
+    clientId: existing.clientId,
+    issuedAt: todayIso(),
+    notes: existing.notes,
+    items: existing.items.map((item) => ({
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      taxRate: item.taxRate,
+    })),
+  };
+
+  const newId = await insertQuoteWithNumber(input);
+  revalidatePath("/presupuestos");
+  redirect(`/presupuestos/${newId}`);
 }
 
 /**
