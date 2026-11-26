@@ -1,0 +1,78 @@
+{
+  "run": 31,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "En /clientes hay un selector de orden con las opciones Nombre (A-Z) y Fecha de alta (más recientes primero).",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-sort-select"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 1,
+      "text": "Al elegir «recientes» en el selector, el primer cliente de la tabla es el último creado (tras crear un cliente nuevo, aparece en la primera fila).",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "select",
+          "testId": "client-sort-select",
+          "value": "recientes"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "clients-table"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-row",
+          "nth": 0
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 1,
+      "task": 1,
+      "text": "Al elegir «nombre» en el selector, los nombres de las filas de la tabla aparecen en orden alfabético ascendente.",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "select",
+          "testId": "client-sort-select",
+          "value": "recientes"
+        },
+        {
+          "action": "select",
+          "testId": "client-sort-select",
+          "value": "nombre"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "clients-table"
+        },
+        {
+          "action": "expectCount",
+          "testId": "client-row",
+          "min": 1
+        }
+      ]
+    }
+  ]
+}
