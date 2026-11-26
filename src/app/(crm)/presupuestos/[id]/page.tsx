@@ -43,7 +43,7 @@ async function QuoteDetail({
               <Button
                 type="submit"
                 variant="secondary"
-                data-testid="duplicate-quote-button-simulated"
+                data-testid="duplicate-quote-button"
               >
                 Duplicar
               </Button>
@@ -133,5 +133,4 @@ async function QuoteDetail({
       </div>
     </>
   );
-  Join;
 }
