@@ -1,0 +1,31 @@
+{
+  "run": 24,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "la página de detalle del cliente muestra el número de presupuestos en client-quotes-count",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/clientes"
+        },
+        {
+          "action": "click",
+          "testId": "client-row",
+          "nth": 0
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-quotes-count"
+        },
+        {
+          "action": "expectText",
+          "testId": "client-quotes-count",
+          "text": "{{any}}"
+        }
+      ]
+    }
+  ]
+}
