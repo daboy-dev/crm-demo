@@ -58,7 +58,7 @@ async function ClientDetail({
             {
               label: "Tipo",
               value: client.type === "company" ? "Empresa" : "Particular",
-              testId: "client-type",
+              testId: "field-type",
             },
             { label: "NIF", value: client.nif, testId: "client-nif" },
             { label: "Teléfono", value: client.phone, testId: "client-phone" },
