@@ -1,0 +1,134 @@
+{
+  "run": 21,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 2,
+      "task": 1,
+      "text": "La vista previa compila correctamente y la página de clientes se carga",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "nav-clientes"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "page-title"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "clients-table"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 2,
+      "task": 2,
+      "text": "Al crear un cliente con notas internas, el detalle muestra dichas notas en client-notes",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "click",
+          "testId": "new-client-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-form"
+        },
+        {
+          "action": "fill",
+          "testId": "field-name",
+          "value": "Cliente {{stamp}}"
+        },
+        {
+          "action": "fill",
+          "testId": "field-email",
+          "value": "test-{{stamp}}@example.com"
+        },
+        {
+          "action": "fill",
+          "testId": "field-notes",
+          "value": "Notas internas {{stamp}}"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-notes"
+        },
+        {
+          "action": "expectText",
+          "testId": "client-notes",
+          "text": "Notas internas {{stamp}}"
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 2,
+      "task": 2,
+      "text": "Al editar las notas de un cliente recién creado, la página de detalle actualiza el contenido de client-notes",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "click",
+          "testId": "new-client-button"
+        },
+        {
+          "action": "fill",
+          "testId": "field-name",
+          "value": "Cliente {{stamp}}"
+        },
+        {
+          "action": "fill",
+          "testId": "field-email",
+          "value": "test-{{stamp}}@example.com"
+        },
+        {
+          "action": "fill",
+          "testId": "field-notes",
+          "value": "Notas iniciales {{stamp}}"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "click",
+          "testId": "edit-client-button"
+        },
+        {
+          "action": "fill",
+          "testId": "field-notes",
+          "value": "Notas actualizadas {{stamp}}"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-notes"
+        },
+        {
+          "action": "expectText",
+          "testId": "client-notes",
+          "text": "Notas actualizadas {{stamp}}"
+        }
+      ]
+    }
+  ]
+}
