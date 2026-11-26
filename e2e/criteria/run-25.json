@@ -1,0 +1,98 @@
+{
+  "run": 25,
+  "criteria": [
+    {
+      "id": "c1",
+      "revision": 1,
+      "task": 1,
+      "text": "la tabla de clientes muestra la columna o información del tipo de cliente",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "clients-table"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-row"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "revision": 1,
+      "task": 2,
+      "text": "el formulario de cliente incluye el selector de tipo con las opciones Particular y Empresa",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "click",
+          "testId": "new-client-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-form"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "field-type"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "save-button"
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "revision": 1,
+      "task": 2,
+      "text": "el detalle del cliente muestra su tipo correspondiente",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "cliente-detalle"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-detail"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "field-type"
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "revision": 1,
+      "task": 3,
+      "text": "la lista de clientes permite filtrar por tipo de cliente",
+      "steps": [
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
+          "action": "select",
+          "testId": "client-type-filter",
+          "value": "company"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "clients-table"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-row"
+        }
+      ]
+    }
+  ]
+}

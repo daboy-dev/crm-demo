@@ -14,6 +14,7 @@ import {
   invoices,
   quoteItems,
   quotes,
+  type ClientType,
   type InvoiceStatus,
   type QuoteStatus,
 } from "./schema";
@@ -27,7 +28,22 @@ type SeedLine = [
   taxRate: number,
 ];
 
-const CLIENTS = [
+const COMPANY_EMAILS = new Set([
+  "javier.moreno@example.com",
+  "carmen.navarro@example.com",
+  "marta.romero@example.com",
+  "sergio.torres@example.com",
+  "elena.ramirez@example.com",
+  "daniel.herrera@example.com",
+  "laura.munoz@example.com",
+  "nuria.castro@example.com",
+  "raul.ortiz@example.com",
+  "isabel.rubio@example.com",
+  "andres.molina@example.com",
+  "sofia.gallego@example.com",
+]);
+
+const BASE_CLIENTS = [
   {
     name: "Lucía Fernández Ruiz",
     email: "lucia.fernandez@example.com",
@@ -134,6 +150,11 @@ const CLIENTS = [
     company: "Floristería Jazmín",
   },
 ];
+
+const CLIENTS = BASE_CLIENTS.map((c) => ({
+  ...c,
+  type: (COMPANY_EMAILS.has(c.email) ? "company" : "individual") as ClientType,
+}));
 
 type SeedQuote = {
   number: string;
@@ -347,6 +368,12 @@ async function main() {
     .values(CLIENTS)
     .onConflictDoNothing({ target: clients.email })
     .returning({ id: clients.id });
+
+  // Existing rows get the default type on migration: align them with the seed.
+  await db
+    .update(clients)
+    .set({ type: "company" })
+    .where(inArray(clients.email, [...COMPANY_EMAILS]));
 
   const clientRows = await db
     .select({ id: clients.id, email: clients.email })

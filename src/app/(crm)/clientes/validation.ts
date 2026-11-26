@@ -12,6 +12,7 @@ export const clientFields = [
   "phone",
   "company",
   "notes",
+  "type",
 ] as const;
 
 export const clientSchema = z.object({
@@ -25,6 +26,9 @@ export const clientSchema = z.object({
   phone: optionalText,
   company: optionalText,
   notes: optionalText,
+  type: z.enum(["individual", "company"], {
+    error: "Selecciona un tipo de cliente.",
+  }),
 });
 
 export type ClientInput = z.infer<typeof clientSchema>;
