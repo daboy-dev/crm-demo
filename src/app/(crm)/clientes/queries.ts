@@ -1,12 +1,16 @@
-import { asc, count, desc, eq } from "drizzle-orm";
+import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { clients, invoices, quotes, type ClientType } from "@/db/schema";
 
-export async function listClients(type?: ClientType) {
+export type ClientSort = "nombre" | "recientes";
+
+export async function listClients(type?: ClientType, orden?: string) {
   const query = getDb().select().from(clients);
-  return (type ? query.where(eq(clients.type, type)) : query).orderBy(
-    asc(clients.name),
-  );
+  const filtered = type ? query.where(eq(clients.type, type)) : query;
+  if (orden === "recientes") {
+    return filtered.orderBy(desc(clients.createdAt), desc(clients.id));
+  }
+  return filtered.orderBy(asc(sql`lower(${clients.name})`), asc(clients.id));
 }
 
 /** Clients for a <select>: id and display name only. */

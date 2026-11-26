@@ -6,12 +6,13 @@ import { ButtonLink } from "@/components/button";
 import { Loading, PageHeader } from "@/components/page-header";
 import { EmptyRow, Table, Td, Th, Tr } from "@/components/table";
 import { ClientSearch } from "./client-search";
+import { ClientSort } from "./client-sort";
 import { ClientTypeFilter } from "./client-type-filter";
 import { listClients } from "./queries";
 
 export const metadata: Metadata = { title: "Clientes · crm-demo" };
 
-type SearchParams = Promise<{ search?: string; tipo?: string }>;
+type SearchParams = Promise<{ search?: string; tipo?: string; orden?: string }>;
 
 export default function ClientsPage({
   searchParams,
@@ -27,6 +28,7 @@ export default function ClientsPage({
             <Suspense fallback={null}>
               <ClientSearch />
               <TypeFilter searchParams={searchParams} />
+              <SortSelect searchParams={searchParams} />
             </Suspense>
             <ButtonLink href="/clientes/nuevo" data-testid="new-client-button">
               Nuevo cliente
@@ -46,11 +48,19 @@ async function TypeFilter({ searchParams }: { searchParams: SearchParams }) {
   return <ClientTypeFilter value={tipo} />;
 }
 
+async function SortSelect({ searchParams }: { searchParams: SearchParams }) {
+  const { orden } = await searchParams;
+  return <ClientSort value={orden === "recientes" ? "recientes" : "nombre"} />;
+}
+
 async function ClientsTable({ searchParams }: { searchParams: SearchParams }) {
-  const { search = "", tipo = "" } = await searchParams;
+  const { search = "", tipo = "", orden = "" } = await searchParams;
   await connection();
   const type = tipo === "individual" || tipo === "company" ? tipo : undefined;
-  const allClients = await listClients(type);
+  const allClients = await listClients(
+    type,
+    orden === "recientes" ? "recientes" : "nombre",
+  );
   const query = search.trim().toLowerCase();
 
   const clients = allClients.filter(
