@@ -27,6 +27,7 @@ export const clients = pgTable("clients", {
   nif: text(),
   phone: text(),
   company: text(),
+  notes: text(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

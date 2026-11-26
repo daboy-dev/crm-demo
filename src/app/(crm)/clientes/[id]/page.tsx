@@ -63,6 +63,11 @@ async function ClientDetail({
               testId: "client-company",
             },
             {
+              label: "Notas internas",
+              value: client.notes,
+              testId: "client-notes",
+            },
+            {
               label: "Alta",
               value: formatDate(client.createdAt.toISOString().slice(0, 10)),
             },

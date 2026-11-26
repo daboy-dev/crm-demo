@@ -11,6 +11,7 @@ export const clientFields = [
   "nif",
   "phone",
   "company",
+  "notes",
 ] as const;
 
 export const clientSchema = z.object({
@@ -23,6 +24,7 @@ export const clientSchema = z.object({
   nif: optionalText,
   phone: optionalText,
   company: optionalText,
+  notes: optionalText,
 });
 
 export type ClientInput = z.infer<typeof clientSchema>;
