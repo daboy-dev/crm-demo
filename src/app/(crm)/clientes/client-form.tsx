@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { Button, ButtonLink } from "@/components/button";
-import { Field } from "@/components/field";
+import { Field, TextareaField } from "@/components/field";
 import { emptyFormState, type FormState } from "@/lib/forms";
 
 type Action = (prev: FormState, formData: FormData) => Promise<FormState>;
@@ -58,6 +58,12 @@ export function ClientForm({
         name="company"
         defaultValue={value("company")}
         error={state.errors.company}
+      />
+      <TextareaField
+        label="Notas internas"
+        name="notes"
+        defaultValue={value("notes")}
+        error={state.errors.notes}
       />
       <div className="flex gap-2">
         <Button type="submit" disabled={pending} data-testid="save-button">
