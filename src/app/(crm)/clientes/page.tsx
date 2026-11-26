@@ -6,14 +6,17 @@ import { ButtonLink } from "@/components/button";
 import { Loading, PageHeader } from "@/components/page-header";
 import { EmptyRow, Table, Td, Th, Tr } from "@/components/table";
 import { ClientSearch } from "./client-search";
+import { ClientTypeFilter } from "./client-type-filter";
 import { listClients } from "./queries";
 
 export const metadata: Metadata = { title: "Clientes · crm-demo" };
 
+type SearchParams = Promise<{ search?: string; tipo?: string }>;
+
 export default function ClientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: SearchParams;
 }) {
   return (
     <>
@@ -23,6 +26,7 @@ export default function ClientsPage({
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <Suspense fallback={null}>
               <ClientSearch />
+              <TypeFilter searchParams={searchParams} />
             </Suspense>
             <ButtonLink href="/clientes/nuevo" data-testid="new-client-button">
               Nuevo cliente
@@ -37,14 +41,16 @@ export default function ClientsPage({
   );
 }
 
-async function ClientsTable({
-  searchParams,
-}: {
-  searchParams: Promise<{ search?: string }>;
-}) {
-  const { search = "" } = await searchParams;
+async function TypeFilter({ searchParams }: { searchParams: SearchParams }) {
+  const { tipo = "" } = await searchParams;
+  return <ClientTypeFilter value={tipo} />;
+}
+
+async function ClientsTable({ searchParams }: { searchParams: SearchParams }) {
+  const { search = "", tipo = "" } = await searchParams;
   await connection();
-  const allClients = await listClients();
+  const type = tipo === "individual" || tipo === "company" ? tipo : undefined;
+  const allClients = await listClients(type);
   const query = search.trim().toLowerCase();
 
   const clients = allClients.filter(
@@ -58,6 +64,7 @@ async function ClientsTable({
       <thead>
         <tr>
           <Th>Nombre</Th>
+          <Th className="hidden sm:table-cell">Tipo</Th>
           <Th className="hidden sm:table-cell">NIF</Th>
           <Th className="hidden sm:table-cell">Empresa</Th>
           <Th className="hidden md:table-cell">Email</Th>
@@ -66,7 +73,7 @@ async function ClientsTable({
       </thead>
       <tbody className="divide-y divide-slate-100">
         {clients.length === 0 && (
-          <EmptyRow colSpan={5}>No se encontraron clientes.</EmptyRow>
+          <EmptyRow colSpan={6}>No se encontraron clientes.</EmptyRow>
         )}
         {clients.map((client) => (
           <Tr key={client.id} data-testid="client-row" data-id={client.id}>
@@ -80,6 +87,9 @@ async function ClientsTable({
               <div className="text-xs text-slate-500 sm:hidden">
                 {client.company ?? client.email}
               </div>
+            </Td>
+            <Td className="hidden sm:table-cell">
+              {client.type === "company" ? "Empresa" : "Particular"}
             </Td>
             <Td className="hidden whitespace-nowrap sm:table-cell">
               {client.nif ?? "—"}
