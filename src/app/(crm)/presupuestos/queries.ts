@@ -1,11 +1,12 @@
 import { desc, eq, like } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { quotes, type QuoteStatus } from "@/db/schema";
+import { quotes, quoteStatus } from "@/db/schema";
 
-/** All quotes, newest first, with client and lines (to compute totals). Optionally filtered by status. */
-export async function listQuotes(status?: QuoteStatus) {
+/** All quotes, newest first, with client and lines (to compute totals). Optionally filtered by status; invalid values are ignored. */
+export async function listQuotes(status?: string) {
+  const valid = quoteStatus.enumValues.find((value) => value === status);
   return getDb().query.quotes.findMany({
-    where: status ? eq(quotes.status, status) : undefined,
+    where: valid ? eq(quotes.status, valid) : undefined,
     orderBy: [desc(quotes.issuedAt), desc(quotes.id)],
     with: {
       client: { columns: { id: true, name: true } },
