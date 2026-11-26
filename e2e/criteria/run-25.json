@@ -80,6 +80,37 @@
           "page": "clientes"
         },
         {
+          "action": "click",
+          "testId": "new-client-button"
+        },
+        {
+          "action": "fill",
+          "testId": "field-name",
+          "value": "Empresa {{stamp}}"
+        },
+        {
+          "action": "fill",
+          "testId": "field-email",
+          "value": "empresa-{{stamp}}@example.com"
+        },
+        {
+          "action": "select",
+          "testId": "field-type",
+          "value": "company"
+        },
+        {
+          "action": "click",
+          "testId": "save-button"
+        },
+        {
+          "action": "expectVisible",
+          "testId": "client-detail"
+        },
+        {
+          "action": "goto",
+          "page": "clientes"
+        },
+        {
           "action": "select",
           "testId": "client-type-filter",
           "value": "company"
@@ -89,8 +120,10 @@
           "testId": "clients-table"
         },
         {
-          "action": "expectVisible",
-          "testId": "client-row"
+          "action": "expectText",
+          "testId": "client-row",
+          "text": "Empresa",
+          "all": true
         }
       ]
     }
