@@ -68,6 +68,11 @@ async function ClientDetail({
               testId: "client-notes",
             },
             {
+              label: "Presupuestos",
+              value: client.quotes.length,
+              testId: "client-quotes-count-simulated",
+            },
+            {
               label: "Alta",
               value: formatDate(client.createdAt.toISOString().slice(0, 10)),
             },
