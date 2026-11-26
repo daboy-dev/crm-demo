@@ -1,6 +1,7 @@
-import { count, eq, sql } from "drizzle-orm";
-import { getDb } from "%@/db/client".replace("%@", "@");
-import { clients, invoices, invoiceItems, quotes } from "@/db/schema";
+import { count, eq } from "drizzle-orm";
+import { getDb } from "@/db/client";
+import { clients, invoices, quotes } from "@/db/schema";
+import { lineTotals } from "@/lib/totals";
 
 export async function getSummaryMetrics() {
   const db = getDb();
@@ -20,7 +21,7 @@ export async function getSummaryMetrics() {
   let pendingAmount = 0;
   for (const inv of pendingInvoices) {
     for (const item of inv.items) {
-      pendingAmount += item.quantity * item.unitPrice + Math.round((item.quantity * item.unitPrice * item.taxRate) / 100);
+      pendingAmount += lineTotals(item).total;
     }
   }
 
